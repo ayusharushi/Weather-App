@@ -1,546 +1,402 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Weather — OpenWeatherMap Demo</title>
-  <style>
-    :root{--bg:#0f1724;--card:#0b1220;--muted:#9aa4b2;--accent:#60a5fa}
-    *{box-sizing:border-box}
-    body{margin:0;font-family:Inter,system-ui,Segoe UI,Roboto;display:flex;min-height:100vh;align-items:center;justify-content:center;background:linear-gradient(180deg,#071020 0%,#071428 60%);color:#e6eef8}
-    .container{width:100%;max-width:880px;padding:28px}
-    .card{background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));border-radius:14px;padding:20px;box-shadow:0 8px 30px rgba(2,6,23,0.6)}
-    header{display:flex;gap:12px;align-items:center;margin-bottom:12px}
-    h1{font-size:18px;margin:0}
-    .controls{display:flex;gap:10px;margin-top:8px}
-    input[type=text]{padding:10px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:transparent;color:inherit;min-width:220px}
-    button{padding:10px 12px;border-radius:8px;border:0;background:var(--accent);color:#072033;cursor:pointer}
-    .row{display:flex;gap:14px}
-    .left{flex:1}
-    .right{width:260px}
-    .weather-card{display:flex;align-items:center;gap:12px;padding:18px;border-radius:12px;background:linear-gradient(180deg,rgba(255,255,255,0.02),transparent)}
-    .weather-main{display:flex;flex-direction:column}
-    .temp{font-size:44px;font-weight:600}
-    .desc{text-transform:capitalize;color:var(--muted)}
-    .meta{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:12px}
-    .meta div{background:rgba(255,255,255,0.02);padding:10px;border-radius:8px;text-align:center}
-    .small{font-size:12px;color:var(--muted)}
-    .big{font-weight:600}
-    .footer{margin-top:14px;color:var(--muted);font-size:13px}
-    .loading{opacity:0.9;padding:14px;border-radius:10px;background:rgba(255,255,255,0.02);display:inline-block}
-    .error{color:#ffb4b4;background:rgba(255,100,100,0.06);padding:10px;border-radius:8px}
-    .actions{display:flex;gap:8px}
-    .toggle{padding:8px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:inherit}
-    footer.smallnote{margin-top:12px;color:var(--muted);font-size:12px}
-    @media(max-width:720px){.row{flex-direction:column}.right{width:100%}}
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        .search-box input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .search-box button {
+            padding: 12px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background 0.3s;
+        }
+
+        .search-box button:hover {
+            background: #5568d3;
+        }
+
+        .location-btn {
+            padding: 12px 20px;
+            background: #764ba2;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background 0.3s;
+        }
+
+        .location-btn:hover {
+            background: #653a89;
+        }
+
+        .weather-info {
+            display: none;
+            text-align: center;
+        }
+
+        .weather-info.show {
+            display: block;
+        }
+
+        .city-name {
+            font-size: 2em;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .temperature {
+            font-size: 3.5em;
+            color: #667eea;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+
+        .weather-description {
+            font-size: 1.2em;
+            color: #666;
+            text-transform: capitalize;
+            margin-bottom: 20px;
+        }
+
+        .weather-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #eee;
+        }
+
+        .detail {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 10px;
+        }
+
+        .detail-label {
+            font-size: 0.9em;
+            color: #999;
+            margin-bottom: 5px;
+        }
+
+        .detail-value {
+            font-size: 1.5em;
+            color: #333;
+            font-weight: bold;
+        }
+
+        .loading {
+            text-align: center;
+            color: #667eea;
+            font-size: 1.1em;
+            display: none;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .error {
+            background: #ffebee;
+            color: #c62828;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            display: none;
+            text-align: center;
+        }
+
+        .error.show {
+            display: block;
+        }
+
+        .weather-icon {
+            font-size: 4em;
+            margin: 20px 0;
+        }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <div class="card">
-      <header>
-        <div>
-          <h1>Weather App (OpenWeatherMap)</h1>
-          <div class="small">Get current weather by your location or by city name</div>
+    <div class="container">
+        <h1>🌤️ Weather App</h1>
+        
+        <div class="search-box">
+            <input 
+                type="text" 
+                id="cityInput" 
+                placeholder="Enter city name..." 
+                autocomplete="off"
+            >
+            <button onclick="searchByCity()">Search</button>
+            <button class="location-btn" onclick="getLocationWeather()">📍 Location</button>
         </div>
-        <div style="margin-left:auto" class="actions">
-          <button id="btn-locate">Use my location</button>
-          <button id="btn-refresh" title="Refresh">⟳</button>
-        </div>
-      </header>
 
-      <div class="controls">
-        <input id="city-input" type="text" placeholder="Enter city name (eg: London)" />
-        <button id="btn-search">Search</button>
-        <select id="units" class="toggle" title="Units">
-          <option value="metric">°C</option>
-          <option value="imperial">°F</option>
-          <option value="standard">K</option>
-        </select>
-      </div>
+        <div class="loading" id="loading">Loading weather data...</div>
+        <div class="error" id="error"></div>
 
-      <main style="margin-top:16px">
-        <div id="message" class="footer"></div>
-
-        <div class="row" style="margin-top:12px">
-          <div class="left">
-            <div id="weather-area" aria-live="polite">
-              <div class="loading" id="placeholder">No data loaded yet. Try "Use my location" or search a city.</div>
-            </div>
-            <div class="footer smallnote">Note: This demo uses the OpenWeatherMap Current Weather API.</div>
-          </div>
-
-          <aside class="right">
-            <div id="side-info">
-              <div style="font-size:13px;color:var(--muted);margin-bottom:8px">Details</div>
-              <div id="details-area">
-                <div class="meta" id="meta-grid">
+        <div class="weather-info" id="weatherInfo">
+            <div class="city-name" id="cityName"></div>
+            <div class="weather-icon" id="weatherIcon"></div>
+            <div class="temperature" id="temperature"></div>
+            <div class="weather-description" id="description"></div>
+            
+            <div class="weather-details">
+                <div class="detail">
+                    <div class="detail-label">Feels Like</div>
+                    <div class="detail-value" id="feelsLike"></div>
                 </div>
-              </div>
+                <div class="detail">
+                    <div class="detail-label">Humidity</div>
+                    <div class="detail-value" id="humidity"></div>
+                </div>
+                <div class="detail">
+                    <div class="detail-label">Wind Speed</div>
+                    <div class="detail-value" id="windSpeed"></div>
+                </div>
+                <div class="detail">
+                    <div class="detail-label">Pressure</div>
+                    <div class="detail-value" id="pressure"></div>
+                </div>
+                <div class="detail">
+                    <div class="detail-label">Visibility</div>
+                    <div class="detail-value" id="visibility"></div>
+                </div>
+                <div class="detail">
+                    <div class="detail-label">UV Index</div>
+                    <div class="detail-value" id="uvIndex">N/A</div>
+                </div>
             </div>
-          </aside>
         </div>
-
-      </main>
     </div>
-  </div>
 
-  <script>
-    // === CONFIG ===
-    const API_KEY = '4fe81624fd769e768a06fd6f3b78bf85'; // provided by user
-    const apiBase = 'https://api.openweathermap.org/data/2.5/weather';
+    <script>
+        const API_KEY = '5fce1fd77b28607fe0e63d88e268d8e0';
+        const API_URL = 'https://api.openweathermap.org/data/2.5/weather';
 
-    // === UI refs ===
-    const el = id => document.getElementById(id);
-    const weatherArea = el('weather-area');
-    const msg = el('message');
-    const placeholder = el('placeholder');
-    const metaGrid = el('meta-grid');
-    const unitsSelect = el('units');
+        // Icon mapping for weather conditions
+        const weatherIcons = {
+            '01d': '☀️',
+            '01n': '🌙',
+            '02d': '⛅',
+            '02n': '🌤️',
+            '03d': '☁️',
+            '03n': '☁️',
+            '04d': '☁️',
+            '04n': '☁️',
+            '09d': '🌧️',
+            '09n': '🌧️',
+            '10d': '🌦️',
+            '10n': '🌧️',
+            '11d': '⛈️',
+            '11n': '⛈️',
+            '13d': '❄️',
+            '13n': '❄️',
+            '50d': '🌫️',
+            '50n': '🌫️'
+        };
 
-    // Keep last response (for refresh)
-    let lastQuery = null;
-    let lastUnits = localStorage.getItem('owm_units') || 'metric';
-    unitsSelect.value = lastUnits;
-
-    function showMessage(text, isError=false){
-      msg.textContent = text;
-      msg.className = isError? 'error': 'footer';
-    }
-
-    function clearMessage(){ msg.textContent=''; msg.className='footer'; }
-
-    function formatTime(epochSeconds, tzOffsetSeconds){
-      // epochSeconds in UTC, tzOffsetSeconds is offset in seconds
-      const date = new Date((epochSeconds + tzOffsetSeconds) * 1000);
-      return date.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
-    }
-
-    function buildWeatherUI(data, units){
-      const {name, sys, weather, main, wind, timezone} = data;
-      const w = weather[0];
-      const iconUrl = `https://openweathermap.org/img/wn/${w.icon}@2x.png`;
-
-      const tempUnit = units === 'metric' ? '°C' : units === 'imperial' ? '°F' : 'K';
-
-      const html = `
-        <div class="weather-card">
-          <img src="${iconUrl}" width="96" height="96" alt="${w.description}" />
-          <div class="weather-main">
-            <div style="display:flex;gap:8px;align-items:center">
-              <div style="font-size:14px;color:var(--muted)">${name}, ${sys.country}</div>
-              <div style="margin-left:8px;font-size:13px;color:var(--muted)">Local time: ${formatTime(Math.floor(Date.now()/1000), timezone)}</div>
-            </div>
-            <div class="temp">${Math.round(main.temp)}${tempUnit}</div>
-            <div class="desc">${w.description}</div>
-          </div>
-        </div>
-      `;
-
-      weatherArea.innerHTML = html;
-
-      // meta
-      const sunrise = formatTime(sys.sunrise, timezone);
-      const sunset = formatTime(sys.sunset, timezone);
-      const feels = Math.round(main.feels_like) + tempUnit;
-      const humidity = main.humidity + '%';
-      const windspd = `${wind.speed} ${units === 'metric' ? 'm/s' : units === 'imperial' ? 'mph' : 'm/s'}`;
-
-      metaGrid.innerHTML = `
-        <div>
-          <div class="small">Feels like</div>
-          <div class="big">${feels}</div>
-        </div>
-        <div>
-          <div class="small">Humidity</div>
-          <div class="big">${humidity}</div>
-        </div>
-        <div>
-          <div class="small">Wind</div>
-          <div class="big">${windspd}</div>
-        </div>
-        <div>
-          <div class="small">Sunrise / Sunset</div>
-          <div class="big">${sunrise} / ${sunset}</div>
-        </div>
-      `;
-    }
-
-    async function fetchWeatherByCoords(lat, lon, units='metric'){
-      const url = `${apiBase}?lat=${lat}&lon=${lon}&units=${units}&appid=${API_KEY}`;
-      lastQuery = {type: 'coords', lat, lon};
-      lastUnits = units;
-      localStorage.setItem('owm_units', units);
-      return fetchAndShow(url, units);
-    }
-
-    async function fetchWeatherByCity(q, units='metric'){
-      const url = `${apiBase}?q=${encodeURIComponent(q)}&units=${units}&appid=${API_KEY}`;
-      lastQuery = {type: 'city', q};
-      lastUnits = units;
-      localStorage.setItem('owm_units', units);
-      return fetchAndShow(url, units);
-    }
-
-    async function fetchAndShow(url, units){
-      try{
-        showMessage('Loading...');
-        weatherArea.innerHTML = '<div class="loading">Fetching weather…</div>';
-        metaGrid.innerHTML = '';
-        const res = await fetch(url);
-        if(!res.ok){
-          if(res.status === 401) throw new Error('Invalid API key (401).');
-          if(res.status === 404) throw new Error('Location not found (404).');
-          throw new Error(`API error: ${res.status}`);
+        function showLoading() {
+            document.getElementById('loading').classList.add('show');
+            document.getElementById('weatherInfo').classList.remove('show');
+            document.getElementById('error').classList.remove('show');
         }
-        const data = await res.json();
-        buildWeatherUI(data, units);
-        clearMessage();
-      }catch(err){
-        weatherArea.innerHTML = `<div class="error">${err.message}</div>`;
-        metaGrid.innerHTML = '';
-        showMessage('Failed to load weather.', true);
-        console.error(err);
-      }
-    }
 
-    // Event wiring
-    el('btn-locate').addEventListener('click', ()=>{
-      if(!navigator.geolocation){
-        showMessage('Geolocation not supported in this browser.', true);
-        return;
-      }
-      showMessage('Requesting location…');
-      navigator.geolocation.getCurrentPosition(pos=>{
-        clearMessage();
-        fetchWeatherByCoords(pos.coords.latitude, pos.coords.longitude, unitsSelect.value);
-      }, err=>{
-        showMessage('Unable to retrieve location: ' + err.message, true);
-      }, {timeout:10000});
-    });
+        function hideLoading() {
+            document.getElementById('loading').classList.remove('show');
+        }
 
-    el('btn-search').addEventListener('click', ()=>{
-      const q = el('city-input').value.trim();
-      if(!q) return showMessage('Type a city name to search.', true);
-      fetchWeatherByCity(q, unitsSelect.value);
-    });
+        function showError(message) {
+            document.getElementById('error').textContent = message;
+            document.getElementById('error').classList.add('show');
+            document.getElementById('weatherInfo').classList.remove('show');
+        }
 
-    el('city-input').addEventListener('keydown', (e)=>{
-      if(e.key === 'Enter') el('btn-search').click();
-    });
+        function getWeatherIcon(iconCode) {
+            return weatherIcons[iconCode] || '🌤️';
+        }
 
-    el('btn-refresh').addEventListener('click', ()=>{
-      if(!lastQuery) return showMessage('No previous query to refresh.', true);
-      if(lastQuery.type === 'coords') fetchWeatherByCoords(lastQuery.lat, lastQuery.lon, unitsSelect.value);
-      else if(lastQuery.type === 'city') fetchWeatherByCity(lastQuery.q, unitsSelect.value);
-    });
+        async function fetchWeather(lat, lon) {
+            showLoading();
+            try {
+                const response = await fetch(
+                    `${API_URL}?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric`
+                );
+                
+                if (!response.ok) {
+                    throw new Error('Failed to fetch weather data');
+                }
 
-    unitsSelect.addEventListener('change', ()=>{
-      if(!lastQuery) return localStorage.setItem('owm_units', unitsSelect.value);
-      // Re-run last query using new units
-      if(lastQuery.type === 'coords') fetchWeatherByCoords(lastQuery.lat, lastQuery.lon, unitsSelect.value);
-      else fetchWeatherByCity(lastQuery.q, unitsSelect.value);
-    });
+                const data = await response.json();
+                displayWeather(data);
+                hideLoading();
+            } catch (error) {
+                showError('Error fetching weather data. Please try again.');
+                hideLoading();
+                console.error('Error:', error);
+            }
+        }
 
-    // Auto-load user's location on first open (permission request):
-    (function autoDetect(){
-      const auto = true; // change to false to disable
-      if(!auto) return;
-      // try to use previously selected units
-      const last = localStorage.getItem('owm_last_city');
-      if(last){ el('city-input').value = last; }
-      // Try geolocation but don't be intrusive: if permission already granted, use it.
-      if(navigator.permissions){
-        navigator.permissions.query({name:'geolocation'}).then(p=>{
-          if(p.state === 'granted'){
-            navigator.geolocation.getCurrentPosition(pos=>{
-              fetchWeatherByCoords(pos.coords.latitude, pos.coords.longitude, unitsSelect.value);
-            });
-          }
-        }).catch(()=>{});
-      }
-    })();
+        async function fetchWeatherByCity(city) {
+            showLoading();
+            try {
+                // First, get coordinates from city name
+                const geoResponse = await fetch(
+                    `https://api.openweathermap.org/geo/1.0/direct?q=${city}&appid=${API_KEY}`
+                );
 
-  </script>
+                if (!geoResponse.ok) {
+                    throw new Error('City not found');
+                }
+
+                const geoData = await geoResponse.json();
+                
+                if (geoData.length === 0) {
+                    throw new Error('City not found');
+                }
+
+                const { lat, lon } = geoData[0];
+                
+                // Now fetch weather data
+                const weatherResponse = await fetch(
+                    `${API_URL}?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric`
+                );
+
+                if (!weatherResponse.ok) {
+                    throw new Error('Failed to fetch weather data');
+                }
+
+                const weatherData = await weatherResponse.json();
+                displayWeather(weatherData);
+                hideLoading();
+            } catch (error) {
+                showError(error.message || 'Error fetching weather data. Please try again.');
+                hideLoading();
+                console.error('Error:', error);
+            }
+        }
+
+        function displayWeather(data) {
+            const { name, main, weather, wind, clouds, sys, visibility } = data;
+            
+            document.getElementById('cityName').textContent = 
+                `${name}, ${data.sys.country}`;
+            document.getElementById('temperature').textContent = 
+                `${Math.round(main.temp)}°C`;
+            document.getElementById('description').textContent = 
+                weather[0].description;
+            document.getElementById('weatherIcon').textContent = 
+                getWeatherIcon(weather[0].icon);
+            document.getElementById('feelsLike').textContent = 
+                `${Math.round(main.feels_like)}°C`;
+            document.getElementById('humidity').textContent = 
+                `${main.humidity}%`;
+            document.getElementById('windSpeed').textContent = 
+                `${Math.round(wind.speed * 3.6)} km/h`;
+            document.getElementById('pressure').textContent = 
+                `${main.pressure} hPa`;
+            document.getElementById('visibility').textContent = 
+                `${(visibility / 1000).toFixed(1)} km`;
+
+            document.getElementById('weatherInfo').classList.add('show');
+        }
+
+        function getLocationWeather() {
+            if (navigator.geolocation) {
+                showLoading();
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        const { latitude, longitude } = position.coords;
+                        fetchWeather(latitude, longitude);
+                    },
+                    (error) => {
+                        showError('Unable to get your location. Please enable location access.');
+                        console.error('Geolocation error:', error);
+                    }
+                );
+            } else {
+                showError('Geolocation is not supported by your browser.');
+            }
+        }
+
+        function searchByCity() {
+            const city = document.getElementById('cityInput').value.trim();
+            if (city) {
+                fetchWeatherByCity(city);
+                document.getElementById('cityInput').value = '';
+            } else {
+                showError('Please enter a city name.');
+            }
+        }
+
+        // Allow Enter key to search
+        document.getElementById('cityInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                searchByCity();
+            }
+        });
+
+        // Load weather for default location on page load
+        window.addEventListener('load', () => {
+            getLocationWeather();
+        });
+    </script>
 </body>
 </html>
-
-<!-- ===================== Proxy Server (Node/Express) ===================== -->
-<!--
-Save the following code as `server.js`. It creates a simple proxy endpoint `/api/weather` that forwards requests
-to OpenWeatherMap using the API key stored in the environment variable `OWM_API_KEY`.
-Run this on the same host as your static site (or adjust CORS/origin as needed) and the client will call
-`/api/weather` instead of calling OpenWeatherMap directly.
--->
-
-<!-- server.js -->
-<!--
-Example usage:
-  OWM_API_KEY=your_key_here node server.js
-
-Then point the client API base to: const apiBase = '/api/weather';
--->
-
-<!--
-Node dependencies:
-  npm init -y
-  npm install express node-fetch cors
--->
-
-<!--
-server.js start
--->
-<script type="text/plain" id="server-js">
-const express = require('express');
-const fetch = require('node-fetch');
-const cors = require('cors');
-
-const app = express();
-const PORT = process.env.PORT || 3000;
-const API_KEY = process.env.OWM_API_KEY;
-
-if(!API_KEY){
-  console.error('Missing OWM_API_KEY environment variable. Set OWM_API_KEY and restart.');
-  process.exit(1);
-}
-
-// Allow CORS from anywhere for development — lock this down in production
-app.use(cors());
-
-// Simple proxy endpoint
-// Accepts: q (city name) OR lat & lon, plus optional units
-app.get('/api/weather', async (req, res) => {
-  try{
-    const { q, lat, lon, units } = req.query;
-    if(!q && !(lat && lon)){
-      return res.status(400).json({ error: 'Provide q=city or lat and lon.' });
-    }
-
-    const params = new URLSearchParams();
-    if(q) params.append('q', q);
-    if(lat && lon){ params.append('lat', lat); params.append('lon', lon); }
-    if(units) params.append('units', units);
-    params.append('appid', API_KEY);
-
-    const url = `https://api.openweathermap.org/data/2.5/weather?${params.toString()}`;
-    const r = await fetch(url);
-    const contentType = r.headers.get('content-type') || 'application/json';
-    const body = await r.text();
-
-    // Forward status and body
-    res.status(r.status).type(contentType).send(body);
-  }catch(err){
-    console.error('Proxy error', err);
-    res.status(500).json({ error: 'Proxy error' });
-  }
-});
-
-app.listen(PORT, ()=>{
-  console.log(`Weather proxy running on http://localhost:${PORT} — forwarding to OpenWeatherMap`);
-});
-</script>
-
-<!-- ===================== Client changes to use proxy ===================== -->
-<!--
-In your HTML file replace the client-side API base and remove the embedded API_KEY.
-Find these lines in the HTML's <script> and change them to the following:
-
-  // Before (existing):
-  // const API_KEY = '5fce1fd77b28607fe0e63d88e268d8e0';
-  // const apiBase = 'https://api.openweathermap.org/data/2.5/weather';
-
-  // After (use proxy):
-  const API_KEY = null; // no key in client
-  const apiBase = '/api/weather';
-
-The fetch functions remain the same; the proxy will forward the query and attach the server-secret API key.
-If your proxy runs on a different host (e.g. https://api.example.com), set apiBase = 'https://api.example.com/api/weather'
-and ensure CORS & HTTPS are configured.
--->
-
-<!-- ===================== Optional: 5-day forecast endpoint =====================
-If you want 5-day / 3-hour forecast, add another proxy route similar to /api/weather that forwards to
-https://api.openweathermap.org/data/2.5/forecast using the same pattern.
--->
-
-
-<!-- ===================== WeatherAPI Integration (Client-side) ===================== -->
-<!--
-This adds support for WeatherAPI (https://www.weatherapi.com/) alongside OpenWeatherMap.
-Features added:
-- Provider select: OpenWeatherMap or WeatherAPI
-- Input for WeatherAPI key (stored in sessionStorage only)
-- Fetch current weather from the selected provider
-
-Notes:
-- You must supply a WeatherAPI key for WeatherAPI calls. Paste it into the "WeatherAPI Key" box and click "Save key".
-- When WeatherAPI is selected the app calls WeatherAPI's current.json endpoint.
--->
-
-<style>
-  /* small form additions for weatherapi key */
-  .provider-row{display:flex;gap:8px;align-items:center;margin-top:10px}
-  .provider-row input[type=password], .provider-row input[type=text]{padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:transparent;color:inherit}
-</style>
-
-<script>
-(function(){
-  // Add provider select UI dynamically next to existing controls
-  const controls = document.querySelector('.controls');
-  const providerWrap = document.createElement('div');
-  providerWrap.className = 'provider-row';
-  providerWrap.innerHTML = `
-    <select id="provider-select" class="toggle" title="API Provider">
-      <option value="openweathermap">OpenWeatherMap</option>
-      <option value="weatherapi">WeatherAPI.com</option>
-    </select>
-    <input id="weatherapi-key" type="password" placeholder="WeatherAPI key (paste)" style="min-width:260px" />
-    <button id="save-weatherapi-key">Save key</button>
-  `;
-  controls.appendChild(providerWrap);
-
-  const providerSelect = document.getElementById('provider-select');
-  const weatherapiKeyInput = document.getElementById('weatherapi-key');
-  const saveKeyBtn = document.getElementById('save-weatherapi-key');
-
-  // Load saved WeatherAPI key from sessionStorage
-  const savedKey = sessionStorage.getItem('weatherapi_key');
-  if(savedKey) weatherapiKeyInput.value = savedKey;
-
-  saveKeyBtn.addEventListener('click', ()=>{
-    const k = weatherapiKeyInput.value.trim();
-    if(!k) return showMessage('Enter a WeatherAPI key to save.', true);
-    sessionStorage.setItem('weatherapi_key', k);
-    showMessage('WeatherAPI key saved to session (kept in browser).');
-  });
-
-  // Update existing fetch functions to branch by provider
-  // We'll override fetchWeatherByCity and fetchWeatherByCoords to route to the appropriate provider
-  const originalFetchWeatherByCity = window.fetchWeatherByCity;
-  const originalFetchWeatherByCoords = window.fetchWeatherByCoords;
-
-  async function fetchFromWeatherAPIByCity(q, units){
-    const key = sessionStorage.getItem('weatherapi_key');
-    if(!key) return showMessage('WeatherAPI key not set. Paste it and click Save key.', true);
-    // WeatherAPI returns temp_c and temp_f; decide which to display based on units
-    const url = `https://api.weatherapi.com/v1/current.json?key=${encodeURIComponent(key)}&q=${encodeURIComponent(q)}`;
-    try{
-      showMessage('Loading from WeatherAPI...');
-      weatherArea.innerHTML = '<div class="loading">Fetching weather from WeatherAPI…</div>';
-      metaGrid.innerHTML = '';
-      const res = await fetch(url);
-      if(!res.ok) throw new Error(`WeatherAPI error: ${res.status}`);
-      const data = await res.json();
-      // Normalize data into the structure expected by buildWeatherUI
-      const normalized = normalizeWeatherAPIResponse(data, units);
-      buildWeatherUI(normalized, units);
-      clearMessage();
-    }catch(err){
-      weatherArea.innerHTML = `<div class="error">${err.message}</div>`;
-      metaGrid.innerHTML = '';
-      showMessage('Failed to load weather from WeatherAPI.', true);
-      console.error(err);
-    }
-  }
-
-  async function fetchFromWeatherAPIByCoords(lat, lon, units){
-    const key = sessionStorage.getItem('weatherapi_key');
-    if(!key) return showMessage('WeatherAPI key not set. Paste it and click Save key.', true);
-    const url = `https://api.weatherapi.com/v1/current.json?key=${encodeURIComponent(key)}&q=${encodeURIComponent(lat + ',' + lon)}`;
-    try{
-      showMessage('Loading from WeatherAPI...');
-      weatherArea.innerHTML = '<div class="loading">Fetching weather from WeatherAPI…</div>';
-      metaGrid.innerHTML = '';
-      const res = await fetch(url);
-      if(!res.ok) throw new Error(`WeatherAPI error: ${res.status}`);
-      const data = await res.json();
-      const normalized = normalizeWeatherAPIResponse(data, units);
-      buildWeatherUI(normalized, units);
-      clearMessage();
-    }catch(err){
-      weatherArea.innerHTML = `<div class="error">${err.message}</div>`;
-      metaGrid.innerHTML = '';
-      showMessage('Failed to load weather from WeatherAPI.', true);
-      console.error(err);
-    }
-  }
-
-  function normalizeWeatherAPIResponse(data, units){
-    // Convert WeatherAPI's response into the shape used by buildWeatherUI (OpenWeatherMap-like)
-    // OWM structure needed: { name, sys: {country, sunrise, sunset}, weather:[{description, icon}], main:{temp, feels_like, humidity}, wind:{speed}, timezone }
-    try{
-      const now = Math.floor(Date.now()/1000);
-      // WeatherAPI provides local time and epoch for location
-      const timezoneOffset = 0; // WeatherAPI does not return raw timezone offset in seconds here; we'll approximate using localtime_epoch vs current UTC
-      const loc = data.location || {};
-      const cur = data.current || {};
-      const iconCode = cur.condition && cur.condition.icon ? cur.condition.icon : '';
-      // WeatherAPI icon is a full URL; we'll extract a filename-like token to use as 'icon' — but buildWeatherUI expects OpenWeatherMap codes.
-      // Instead, we'll use the WeatherAPI icon URL directly by overriding the icon building when provider is WeatherAPI. To keep buildWeatherUI happy, set a placeholder icon code.
-      const normalized = {
-        name: loc.name || '',
-        sys: {
-          country: loc.country || '',
-          sunrise: cur.sunrise || 0,
-          sunset: cur.sunset || 0
-        },
-        weather: [{ description: (cur.condition && cur.condition.text) || '', icon: iconCode }],
-        main: {
-          temp: units === 'metric' ? cur.temp_c : units === 'imperial' ? cur.temp_f : cur.temp_c + 273.15,
-          feels_like: units === 'metric' ? cur.feelslike_c : units === 'imperial' ? cur.feelslike_f : cur.feelslike_c + 273.15,
-          humidity: cur.humidity
-        },
-        wind: {
-          speed: cur.wind_kph ? (units === 'imperial' ? (cur.wind_mph) : (cur.wind_kph/3.6).toFixed(2)) : (cur.wind_mph || 0)
-        },
-        timezone: (loc.localtime_epoch ? (loc.localtime_epoch - now) : 0) // best-effort offset in seconds
-      };
-      // Attach the original WeatherAPI icon URL for usage
-      normalized._weatherapi_icon = cur.condition && cur.condition.icon ? cur.condition.icon : null;
-      // WeatherAPI provides astro in different endpoint; sunrise/sunset may not be present in current.json; so leave sys.sunrise/sunset as 0 if absent.
-      return normalized;
-    }catch(e){
-      console.error('Normalization error', e);
-      return data;
-    }
-  }
-
-  // Monkeypatch the global fetch functions with provider routing
-  window.fetchWeatherByCity = async function(q, units){
-    const provider = providerSelect.value;
-    if(provider === 'weatherapi') return fetchFromWeatherAPIByCity(q, units);
-    return originalFetchWeatherByCity(q, units);
-  };
-
-  window.fetchWeatherByCoords = async function(lat, lon, units){
-    const provider = providerSelect.value;
-    if(provider === 'weatherapi') return fetchFromWeatherAPIByCoords(lat, lon, units);
-    return originalFetchWeatherByCoords(lat, lon, units);
-  };
-
-  // Modify buildWeatherUI to use WeatherAPI icon when present
-  const originalBuildWeatherUI = window.buildWeatherUI;
-  window.buildWeatherUI = function(data, units){
-    // If normalized WeatherAPI response includes _weatherapi_icon (a URL), inject an img tag directly
-    if(data && data._weatherapi_icon){
-      // Temporarily adjust weather[0].icon to a placeholder and let original build create layout; then replace the <img> src
-      const prev = JSON.parse(JSON.stringify(data));
-      prev.weather[0].icon = 'placeholder';
-      originalBuildWeatherUI(prev, units);
-      const img = document.querySelector('#weather-area img');
-      if(img) img.src = data._weatherapi_icon;
-      return;
-    }
-    return originalBuildWeatherUI(data, units);
-  };
-
-  // If provider toggled, update a small message
-  providerSelect.addEventListener('change', ()=>{
-    showMessage(`Using provider: ${providerSelect.value}`);
-  });
-
-})();
-</script>
-
-<!-- End of WeatherAPI integration -->
-
